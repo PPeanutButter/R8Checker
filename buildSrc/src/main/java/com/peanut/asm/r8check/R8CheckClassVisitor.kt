@@ -1,45 +1,33 @@
 package com.peanut.asm.r8check
 
 import com.android.build.api.instrumentation.ClassContext
+import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.signature.SignatureReader
-import org.objectweb.asm.signature.SignatureVisitor
 
 class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisitor: ClassVisitor):ClassVisitor(Opcodes.ASM9, nextClassVisitor) {
     private var result: R8CheckResult? = null
 
-    override fun visit(
-        version: Int,
+    override fun visitMethod(
         access: Int,
         name: String?,
+        descriptor: String?,
         signature: String?,
-        superName: String?,
-        interfaces: Array<out String>?
-    ) {
-        println(name)
-        //check if need more visits
-//        val t = signature.getClassT()
-//        t?.let {
-//            result = R8CheckResult()
-//            result?.classForName = name
-//            result?.T = t
-//            val i = visitInterface()
-//            if (i != null){
-//                result?.bool = true
-//            }
-//        }
-        super.visit(version, access, name, signature, superName, interfaces)
-    }
-
-    override fun visitSource(source: String?, debug: String?) {
-        result?.let {
-            it.source = source
+        exceptions: Array<out String>?
+    ): MethodVisitor {
+        return object : MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+            override fun visitTypeInsn(opcode: Int, type: String?) {
+                if (opcode == Opcodes.NEW){
+                    val c = classContext
+                    println(c)
+                }
+                println(type)
+                super.visitTypeInsn(opcode, type)
+            }
         }
-        super.visitSource(source, debug)
     }
-
 
     override fun visitField(
         access: Int,
@@ -48,36 +36,45 @@ class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisit
         signature: String?,
         value: Any?
     ): FieldVisitor {
-        val vf = super.visitField(access, name, descriptor, signature, value)
-        println(vf)
-        vf.visitAnnotation(descriptor, true)
-        return vf
-    }
-    override fun visitEnd() {
-        super.visitEnd()
-        result?.let {
-            if (it.bool)
-                println(it)
-        }
-    }
-    private fun visitInterface(): String?{
-        for (a in classContext.currentClassData.interfaces){
-            if (a.contains("DataCallback")) {
-                return a
+        return object : FieldVisitor(Opcodes.ASM9, super.visitField(access, name, descriptor, signature, value)) {
+            override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor {
+                name?:return super.visitAnnotation(descriptor, visible)
+                val c = classContext.currentClassData.className
+                if (Result.annotationMap.containsKey(c)){
+                    Result.annotationMap[c]!![name] = (descriptor == "Lcom/google/gson/annotations/SerializedName;")
+                }else{
+                    Result.annotationMap[c] = mutableMapOf(name to (descriptor == "Lcom/google/gson/annotations/SerializedName;"))
+                }
+                return super.visitAnnotation(descriptor, visible)
             }
         }
-        return null
     }
-    private fun String?.getClassT():String?{
-        this?:return null
-        var result: String? = null
-        val signatureReader = SignatureReader(this)
-        val signatureVisitor: SignatureVisitor = object : SignatureVisitor(Opcodes.ASM9) {
-            override fun visitClassType(name: String) {
-                result = name
-            }
-        }
-        signatureReader.accept(signatureVisitor)
-        return result
-    }
+
+//    override fun visitEnd() {
+//        super.visitEnd()
+//        result?.let {
+//            if (it.bool)
+//                println(it)
+//        }
+//    }
+//    private fun visitInterface(): String?{
+//        for (a in classContext.currentClassData.interfaces){
+//            if (a.contains("DataCallback")) {
+//                return a
+//            }
+//        }
+//        return null
+//    }
+//    private fun String?.getClassT():String?{
+//        this?:return null
+//        var result: String? = null
+//        val signatureReader = SignatureReader(this)
+//        val signatureVisitor: SignatureVisitor = object : SignatureVisitor(Opcodes.ASM9) {
+//            override fun visitClassType(name: String) {
+//                result = name
+//            }
+//        }
+//        signatureReader.accept(signatureVisitor)
+//        return result
+//    }
 }
