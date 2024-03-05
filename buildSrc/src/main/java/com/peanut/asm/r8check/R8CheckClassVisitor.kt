@@ -20,6 +20,7 @@ class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisit
         interfaces: Array<out String>?
     ) {
         signature?.let {
+            println("$$$:$it")
             if (it.contains("com/peanut/nas/myapplication/DataCallback")){
                 //todo filename
                 Result.classMap.add(it.getClassT()?:"")
