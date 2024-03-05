@@ -7,9 +7,12 @@ public class Main {
         //two common way in project
         c(new DataCallback<Https>(){});
         WebSocket ws = new Gson().fromJson("{\"host\":\"localhost\"}", WebSocket.class);
+        WebSocketSecure wss = JsonUtil.parseJson("{\"host\":\"localhost\"}", WebSocketSecure.class);
     }
 
     public static void c(DataCallback<Https> d){
 //        d.call(new Object());
     }
+
+
 }
