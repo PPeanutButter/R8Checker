@@ -7,5 +7,8 @@ public class Http {
     public String host;
 
     public String protocol;
-
+    public Http(String host, String protocol) {
+        this.host = host;
+        this.protocol = protocol;
+    }
 }

@@ -6,27 +6,26 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.signature.SignatureReader
+import org.objectweb.asm.signature.SignatureVisitor
 
 class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisitor: ClassVisitor):ClassVisitor(Opcodes.ASM9, nextClassVisitor) {
-    private var result: R8CheckResult? = null
 
-    override fun visitMethod(
+    override fun visit(
+        version: Int,
         access: Int,
         name: String?,
-        descriptor: String?,
         signature: String?,
-        exceptions: Array<out String>?
-    ): MethodVisitor {
-        return object : MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
-            override fun visitTypeInsn(opcode: Int, type: String?) {
-                if (opcode == Opcodes.NEW){
-                    val c = classContext
-                    println(c)
-                }
-                println(type)
-                super.visitTypeInsn(opcode, type)
+        superName: String?,
+        interfaces: Array<out String>?
+    ) {
+        signature?.let {
+            if (it.contains("com/peanut/nas/myapplication/DataCallback")){
+                //todo filename
+                Result.classMap.add(it.getClassT()?:"")
             }
         }
+        super.visit(version, access, name, signature, superName, interfaces)
     }
 
     override fun visitField(
@@ -50,31 +49,16 @@ class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisit
         }
     }
 
-//    override fun visitEnd() {
-//        super.visitEnd()
-//        result?.let {
-//            if (it.bool)
-//                println(it)
-//        }
-//    }
-//    private fun visitInterface(): String?{
-//        for (a in classContext.currentClassData.interfaces){
-//            if (a.contains("DataCallback")) {
-//                return a
-//            }
-//        }
-//        return null
-//    }
-//    private fun String?.getClassT():String?{
-//        this?:return null
-//        var result: String? = null
-//        val signatureReader = SignatureReader(this)
-//        val signatureVisitor: SignatureVisitor = object : SignatureVisitor(Opcodes.ASM9) {
-//            override fun visitClassType(name: String) {
-//                result = name
-//            }
-//        }
-//        signatureReader.accept(signatureVisitor)
-//        return result
-//    }
+    private fun String?.getClassT():String?{
+        this?:return null
+        var result: String? = null
+        val signatureReader = SignatureReader(this)
+        val signatureVisitor: SignatureVisitor = object : SignatureVisitor(Opcodes.ASM9) {
+            override fun visitClassType(name: String) {
+                result = name
+            }
+        }
+        signatureReader.accept(signatureVisitor)
+        return result
+    }
 }
