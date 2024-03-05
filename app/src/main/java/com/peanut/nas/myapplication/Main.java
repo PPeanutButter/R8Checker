@@ -10,7 +10,7 @@ public class Main {
         WebSocket ws = new Gson().fromJson("{\"host\":\"localhost\"}", WebSocket.class);
         WebSocketSecure wss = JsonUtil.parseJson("{\"host\":\"localhost\"}", WebSocketSecure.class);
         String ftp = new Gson().toJson(new FTP("", ""));
-        String ftps = JsonUtil.toJsonString(new FTP("", ""));
+        String ftps = JsonUtil.toJsonString(new FTPS("", ""));
     }
 
     public static <T> void c(DataCallback<T> d){
