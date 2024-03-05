@@ -1,6 +1,6 @@
 package com.peanut.nas.myapplication;
 
-public class AnotherHttpCallback extends HttpCallback {
+public class AnotherHttpCallback implements DataCallback<Http> {
 //    @Override
 //    public void call(Http data) {
 //        //do nothing.
