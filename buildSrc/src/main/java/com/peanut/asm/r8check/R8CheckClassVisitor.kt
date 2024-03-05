@@ -50,6 +50,34 @@ class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisit
         }
     }
 
+    override fun visitMethod(
+        access: Int,
+        name: String?,
+        descriptor: String?,
+        signature: String?,
+        exceptions: Array<out String>?
+    ): MethodVisitor {
+        return object : MethodVisitor(Opcodes.ASM9,super.visitMethod(access, name, descriptor, signature, exceptions)){
+            override fun visitMethodInsn(
+                opcode: Int,
+                owner: String?,
+                name: String?,
+                descriptor: String?,
+                isInterface: Boolean
+            ) {
+                val mv = super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
+                MethodVisitorHelper.visitMethod(opcode, owner, name, descriptor, isInterface)
+                return mv
+            }
+
+            override fun visitTypeInsn(opcode: Int, type: String?) {
+                super.visitTypeInsn(opcode, type)
+                MethodVisitorHelper.visitTypeInsn(opcode, type)
+            }
+        }
+    }
+
+
     private fun String?.getClassT():String?{
         this?:return null
         var result: String? = null
