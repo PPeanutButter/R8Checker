@@ -4,4 +4,8 @@ public class JsonUtil {
     public static <T> T parseJson(String json, Class<T> classOfT) {
         return classOfT.cast(new Object());
     }
+
+    public static String toJsonString(Object o) {
+        return "";
+    }
 }
