@@ -14,8 +14,9 @@ class SaveResultPlugin: Plugin<Project> {
             this.description = "My custom task description"
             this.dependsOn("transformDebugClassesWithAsm")
             this.doLast {
-                File("/Users/panrunqiu/Github/MyApplication2/annotation_map.json").writeText(Gson().toJson(Result.annotationMap))
-                println("Saved")
+                File("./annotation_map.json").apply {
+                    println("Saved to ${this.absolutePath}")
+                }.writeText(Gson().toJson(Result.annotationMap))
             }
         }
     }
