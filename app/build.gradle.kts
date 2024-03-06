@@ -1,4 +1,5 @@
 import com.peanut.asm.r8check.R8CheckPlugin
+import com.peanut.asm.r8check.SaveResultPlugin
 
 plugins {
     id("com.android.application")
@@ -6,6 +7,7 @@ plugins {
 }
 
 apply<R8CheckPlugin>()
+apply<SaveResultPlugin>()
 
 android {
     namespace = "com.peanut.nas.myapplication"

@@ -9,7 +9,7 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.signature.SignatureReader
 import org.objectweb.asm.signature.SignatureVisitor
 
-class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisitor: ClassVisitor):ClassVisitor(Opcodes.ASM9, nextClassVisitor) {
+class R8CheckClassVisitor(private val classContext: ClassContext, val configure: Configure, nextClassVisitor: ClassVisitor):ClassVisitor(Opcodes.ASM9, nextClassVisitor) {
 
     override fun visit(
         version: Int,
@@ -20,7 +20,6 @@ class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisit
         interfaces: Array<out String>?
     ) {
         signature?.let {
-            println("$$$:$it")
             if (it.contains("com/peanut/nas/myapplication/DataCallback")){
                 //todo filename
                 Result.classMap.add(it.getClassT()?:"")
@@ -37,15 +36,15 @@ class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisit
         value: Any?
     ): FieldVisitor {
         return object : FieldVisitor(Opcodes.ASM9, super.visitField(access, name, descriptor, signature, value)) {
-            override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor {
-                name?:return super.visitAnnotation(descriptor, visible)
+            override fun visitAnnotation(descriptor1: String?, visible: Boolean): AnnotationVisitor {
+                name?:return super.visitAnnotation(descriptor1, visible)
                 val c = classContext.currentClassData.className
                 if (Result.annotationMap.containsKey(c)){
-                    Result.annotationMap[c]!![name] = (descriptor == "Lcom/google/gson/annotations/SerializedName;")
+                    Result.annotationMap[c]!![name] = (descriptor1 == "Lcom/google/gson/annotations/SerializedName;") to (descriptor?:"")
                 }else{
-                    Result.annotationMap[c] = mutableMapOf(name to (descriptor == "Lcom/google/gson/annotations/SerializedName;"))
+                    Result.annotationMap[c] = mutableMapOf(name to ((descriptor1 == "Lcom/google/gson/annotations/SerializedName;") to (descriptor?:"")))
                 }
-                return super.visitAnnotation(descriptor, visible)
+                return super.visitAnnotation(descriptor1, visible)
             }
         }
     }
@@ -76,7 +75,6 @@ class R8CheckClassVisitor(private val classContext: ClassContext, nextClassVisit
             }
         }
     }
-
 
     private fun String?.getClassT():String?{
         this?:return null

@@ -19,5 +19,4 @@ class R8CheckPlugin: Plugin<Project> {
             )
         }
     }
-
 }
