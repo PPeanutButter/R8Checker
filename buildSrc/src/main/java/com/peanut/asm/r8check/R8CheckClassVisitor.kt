@@ -36,6 +36,16 @@ class R8CheckClassVisitor(private val classContext: ClassContext, val configure:
         value: Any?
     ): FieldVisitor {
         return object : FieldVisitor(Opcodes.ASM9, super.visitField(access, name, descriptor, signature, value)) {
+            init {
+                name?.let {
+                    val c = classContext.currentClassData.className
+                    if (Result.annotationMap.containsKey(c)){
+                        Result.annotationMap[c]!![it] = (false) to (descriptor?:"")
+                    }else{
+                        Result.annotationMap[c] = mutableMapOf(name to (false to (descriptor?:"")))
+                    }
+                }
+            }
             override fun visitAnnotation(descriptor1: String?, visible: Boolean): AnnotationVisitor {
                 name?:return super.visitAnnotation(descriptor1, visible)
                 val c = classContext.currentClassData.className

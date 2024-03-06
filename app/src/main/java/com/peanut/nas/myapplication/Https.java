@@ -8,6 +8,9 @@ public class Https {
     @SerializedName("Protocol")
     public String protocol;
 
+    @SerializedName("Http")
+    public Http http;
+
     public Https(String host, String protocol) {
         this.host = host;
         this.protocol = protocol;
