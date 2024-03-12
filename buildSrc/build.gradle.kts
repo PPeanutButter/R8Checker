@@ -3,12 +3,33 @@ repositories {
     mavenCentral()
 }
 plugins {
-    `kotlin-dsl`
     id("maven-publish")
+    `kotlin-dsl`
 }
 
-group = "com.peanut.r8checker"
-version = "1.0.0"
+gradlePlugin {
+    // Define the plugin
+    plugins {
+        register("R8CheckPlugin") {
+            id = "R8CheckPlugin"
+            implementationClass = "com.peanut.asm.r8check.R8CheckPlugin"
+        }
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.compileKotlin {
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+}
+
+group = "com.peanut.asm.r8check"
+version = "1.4.0"
 
 dependencies {
     implementation("com.android.tools.build:gradle:8.2.0")
@@ -23,37 +44,26 @@ dependencies {
     compileOnly("org.ow2.asm:asm-tree:9.3")
 }
 
-//afterEvaluate {
-//    publishing {
-//        publications {
-//            // Creates a Maven publication called "release".
-//            release(MavenPublication) {
-//                // Applies the component for the release build variant.
-//                from components.release
-//                        artifact packAndroidJar
-//                        // You can then customize attributes of the publication as shown below.
-//                        groupId = 'com.wepie.weplay'
-//                artifactId = 'base-ui'
-//                version = snapshotVersion
-//            }
-//            // Creates a Maven publication called “debug”.
-//            debug(MavenPublication) {
-//                // Applies the component for the debug build variant.
-//                from components.debug
-//                        artifact packAndroidJar
-//                        groupId = 'com.wepie.weplay'
-//                artifactId = 'base-ui'
-//                version = snapshotVersion
-//            }
-//        }
-//        repositories {
-//            maven {
-//                url uri('https://maven.17zjh.com/repository/weflutter/')
-//                credentials {
-//                    username "weflutter"
-//                    password "weflutter"
-//                }
-//            }
+//发布到本地仓库
+publishing {
+//    publications {
+//        create<MavenPublication>("mavenJava") {
+//            from(components["java"])
+//            groupId = "com.peanut"
+//            artifactId = "r8checker"
+//            version = "2.0.0"
 //        }
 //    }
-//}
+    publications {
+        create<MavenPublication>("publication") {
+            version = "0.0.1"
+            artifactId = "Plugin"
+            groupId = "com.example.visitorPlugin"
+            from(components["java"])
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}

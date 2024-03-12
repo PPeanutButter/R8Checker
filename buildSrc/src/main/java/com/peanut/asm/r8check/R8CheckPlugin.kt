@@ -5,9 +5,15 @@ import com.android.build.api.instrumentation.InstrumentationScope
 import com.android.build.api.variant.AndroidComponentsExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.UnknownTaskException
+import org.gradle.kotlin.dsl.existing
+import org.jetbrains.kotlin.com.google.gson.Gson
+import java.io.File
 
-class R8CheckPlugin: Plugin<Project> {
+class R8CheckPlugin : Plugin<Project> {
     override fun apply(target: Project) {
+        println("R8CheckPlugin apply in ${target.name}")
+        clearFile(target)
         val androidComponents = target.extensions.getByType(AndroidComponentsExtension::class.java)
         androidComponents.onVariants { variant ->
             variant.instrumentation.transformClassesWith(
@@ -15,8 +21,47 @@ class R8CheckPlugin: Plugin<Project> {
                 InstrumentationScope.PROJECT
             ) {}
             variant.instrumentation.setAsmFramesComputationMode(
-                FramesComputationMode.COPY_FRAMES
+                FramesComputationMode.COMPUTE_FRAMES_FOR_ALL_CLASSES
             )
         }
+        addSaveTask(target)
+
     }
+
+
+    fun addSaveTask(target: Project) {
+        // Create a task that runs after ':app:transformDebugClassesWithAsm'
+        var dependsTransformTaskName = "transformOfficialDebugClassesWithAsm"
+        if (target.name != "wepie") {
+            dependsTransformTaskName = "transformDebugClassesWithAsm"
+        }
+        target.tasks.create("save_result") {
+            this.group = "build"
+            this.description = "My custom task description"
+            this.dependsOn(dependsTransformTaskName)
+            this.doLast {
+                File("${target.rootDir}/annotation_map.json").apply {
+                    println("Saved to ${this.absolutePath}")
+                }.writeText(Gson().toJson(Result.annotationMap))
+                File("${target.rootDir}/suspicious_class_set.json").apply {
+                    println("Saved to ${this.absolutePath}")
+                }.writeText(Gson().toJson(Result.classMap))
+            }
+        }
+    }
+
+    fun clearFile(target: Project) {
+        val names = arrayListOf(
+            "${target.rootDir}/annotation_map.json",
+            "${target.rootDir}/suspicious_class_set.json"
+        )
+        names.forEach {
+            val file = File(it)
+            if (file.exists()) {
+                println("delete $it")
+                file.delete()
+            }
+        }
+    }
+
 }

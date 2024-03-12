@@ -1,8 +1,9 @@
 package com.peanut.asm.r8check
 
-object Result {
-    val annotationMap = mutableMapOf<String, MutableMap<String, Pair<Boolean, String>>>()
-    val classMap = mutableSetOf<String>()
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArraySet
 
-    var shouldFocusNextCHECKCAST = false
+object Result {
+    val annotationMap = ConcurrentHashMap<String, MutableMap<String, Pair<Boolean, String>>>()
+    val classMap = CopyOnWriteArraySet<String>()
 }

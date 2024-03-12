@@ -18,7 +18,7 @@ abstract class R8CheckFactory : AsmClassVisitorFactory<InstrumentationParameters
     }
 
     override fun isInstrumentable(classData: ClassData) :Boolean {
-        return classData.className.contains("myapplication")
+        return true
     }
 }
 
