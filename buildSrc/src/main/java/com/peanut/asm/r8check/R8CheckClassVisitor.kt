@@ -35,6 +35,9 @@ class R8CheckClassVisitor(private val classContext: ClassContext, val configure:
         signature: String?,
         value: Any?
     ): FieldVisitor {
+        if (access and Opcodes.ACC_TRANSIENT > 0) {
+            return super.visitField(access, name, descriptor, signature, value)
+        }
         return object : FieldVisitor(Opcodes.ASM9, super.visitField(access, name, descriptor, signature, value)) {
             init {
                 name?.let {
