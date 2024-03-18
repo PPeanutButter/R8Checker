@@ -10,7 +10,7 @@ import org.objectweb.asm.signature.SignatureReader
 import org.objectweb.asm.signature.SignatureVisitor
 
 class R8CheckClassVisitor(private val classContext: ClassContext, val configure: Configure, nextClassVisitor: ClassVisitor):ClassVisitor(Opcodes.ASM9, nextClassVisitor) {
-
+    private var methodVisitorHelper = MethodVisitorHelper()
     override fun visit(
         version: Int,
         access: Int,
@@ -78,13 +78,13 @@ class R8CheckClassVisitor(private val classContext: ClassContext, val configure:
                 isInterface: Boolean
             ) {
                 val mv = super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
-                MethodVisitorHelper.visitMethod(opcode, owner, name, descriptor, isInterface)
+                methodVisitorHelper.visitMethod(opcode, owner, name, descriptor, isInterface)
                 return mv
             }
 
             override fun visitTypeInsn(opcode: Int, type: String?) {
                 super.visitTypeInsn(opcode, type)
-                MethodVisitorHelper.visitTypeInsn(opcode, type)
+                methodVisitorHelper.visitTypeInsn(opcode, type)
             }
         }
     }
