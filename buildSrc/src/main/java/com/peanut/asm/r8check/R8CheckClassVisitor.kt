@@ -9,7 +9,11 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.signature.SignatureReader
 import org.objectweb.asm.signature.SignatureVisitor
 
-class R8CheckClassVisitor(private val classContext: ClassContext, val configure: Configure, nextClassVisitor: ClassVisitor):ClassVisitor(Opcodes.ASM9, nextClassVisitor) {
+class R8CheckClassVisitor(
+    private val classContext: ClassContext,
+    val configure: Configure,
+    nextClassVisitor: ClassVisitor
+) : ClassVisitor(Opcodes.ASM9, nextClassVisitor) {
     private var methodVisitorHelper = MethodVisitorHelper()
     override fun visit(
         version: Int,
@@ -20,9 +24,16 @@ class R8CheckClassVisitor(private val classContext: ClassContext, val configure:
         interfaces: Array<out String>?
     ) {
         signature?.let {
-            if (it.contains("com/peanut/nas/myapplication/DataCallback")){
+            it.findAnyOf(
+                arrayListOf(
+                    "com/three/http/callback/DataCallback",
+                    "com/three/http/core/KResult",
+                    "com/three/http/callback/LifeDataCallback"
+                )
+            )?.apply {
+                println("$ s:$it,t:${it.getClassT()}}")
                 //todo filename
-                Result.classMap.add(it.getClassT()?:"")
+                Result.classMap.add(it.getClassT() ?: "")
             }
         }
         super.visit(version, access, name, signature, superName, interfaces)
@@ -35,27 +46,41 @@ class R8CheckClassVisitor(private val classContext: ClassContext, val configure:
         signature: String?,
         value: Any?
     ): FieldVisitor {
-        if (access and Opcodes.ACC_TRANSIENT > 0) {
+        if ((access and (Opcodes.ACC_TRANSIENT or Opcodes.ACC_FINAL or Opcodes.ACC_STATIC)> 0)) {
             return super.visitField(access, name, descriptor, signature, value)
         }
-        return object : FieldVisitor(Opcodes.ASM9, super.visitField(access, name, descriptor, signature, value)) {
+        return object : FieldVisitor(
+            Opcodes.ASM9,
+            super.visitField(access, name, descriptor, signature, value)
+        ) {
             init {
                 name?.let {
                     val c = classContext.currentClassData.className
-                    if (Result.annotationMap.containsKey(c)){
-                        Result.annotationMap[c]!![it] = (false) to (descriptor?:"")
-                    }else{
-                        Result.annotationMap[c] = mutableMapOf(name to (false to (descriptor?:"")))
+                    if (Result.annotationMap.containsKey(c)) {
+                        Result.annotationMap[c]!![it] = (false) to (descriptor ?: "")
+                    } else {
+                        Result.annotationMap[c] =
+                            mutableMapOf(name to (false to (descriptor ?: "")))
                     }
                 }
             }
-            override fun visitAnnotation(descriptor1: String?, visible: Boolean): AnnotationVisitor {
-                name?:return super.visitAnnotation(descriptor1, visible)
+
+            override fun visitAnnotation(
+                descriptor1: String?,
+                visible: Boolean
+            ): AnnotationVisitor {
+                name ?: return super.visitAnnotation(descriptor1, visible)
                 val c = classContext.currentClassData.className
-                if (Result.annotationMap.containsKey(c)){
-                    Result.annotationMap[c]!![name] = (descriptor1 == "Lcom/google/gson/annotations/SerializedName;") to (descriptor?:"")
-                }else{
-                    Result.annotationMap[c] = mutableMapOf(name to ((descriptor1 == "Lcom/google/gson/annotations/SerializedName;") to (descriptor?:"")))
+                if (Result.annotationMap.containsKey(c)) {
+                    val preCheckResult = Result.annotationMap[c]!![name]?.first ?: false
+                    Result.annotationMap[c]!![name] =
+                        (descriptor1 == "Lcom/google/gson/annotations/SerializedName;" || preCheckResult) to (descriptor
+                            ?: "")
+                } else {
+                    Result.annotationMap[c] = mutableMapOf(
+                        name to ((descriptor1 == "Lcom/google/gson/annotations/SerializedName;") to (descriptor
+                            ?: ""))
+                    )
                 }
                 return super.visitAnnotation(descriptor1, visible)
             }
@@ -69,7 +94,10 @@ class R8CheckClassVisitor(private val classContext: ClassContext, val configure:
         signature: String?,
         exceptions: Array<out String>?
     ): MethodVisitor {
-        return object : MethodVisitor(Opcodes.ASM9,super.visitMethod(access, name, descriptor, signature, exceptions)){
+        return object : MethodVisitor(
+            Opcodes.ASM9,
+            super.visitMethod(access, name, descriptor, signature, exceptions)
+        ) {
             override fun visitMethodInsn(
                 opcode: Int,
                 owner: String?,
@@ -89,8 +117,8 @@ class R8CheckClassVisitor(private val classContext: ClassContext, val configure:
         }
     }
 
-    private fun String?.getClassT():String?{
-        this?:return null
+    private fun String?.getClassT(): String? {
+        this ?: return null
         var result: String? = null
         val signatureReader = SignatureReader(this)
         val signatureVisitor: SignatureVisitor = object : SignatureVisitor(Opcodes.ASM9) {
