@@ -5,8 +5,6 @@ import com.android.build.api.instrumentation.InstrumentationScope
 import com.android.build.api.variant.AndroidComponentsExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.UnknownTaskException
-import org.gradle.kotlin.dsl.existing
 import org.jetbrains.kotlin.com.google.gson.Gson
 import java.io.File
 
@@ -25,11 +23,10 @@ class R8CheckPlugin : Plugin<Project> {
             )
         }
         addSaveTask(target)
-
     }
 
 
-    fun addSaveTask(target: Project) {
+    private fun addSaveTask(target: Project) {
         // Create a task that runs after ':app:transformDebugClassesWithAsm'
         var dependsTransformTaskName = "transformOfficialDebugClassesWithAsm"
         if (target.name != "wepie") {
@@ -53,10 +50,11 @@ class R8CheckPlugin : Plugin<Project> {
         }
     }
 
-    fun clearFile(target: Project) {
+    private fun clearFile(target: Project) {
         val names = arrayListOf(
             "${target.rootDir}/annotation_map.json",
-            "${target.rootDir}/suspicious_class_set.json"
+            "${target.rootDir}/suspicious_class_set.json",
+            "${target.rootDir}/suspicious_class_set_reason.json",
         )
         names.forEach {
             val file = File(it)
