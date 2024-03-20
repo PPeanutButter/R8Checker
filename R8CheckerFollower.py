@@ -36,7 +36,7 @@ def get_class_from_str(v: str) -> str:
     return v
 
 
-def find_class_field_with_out_serializable(all_class_map: dict, clazz: str):
+def find_class_field_with_out_serializable(all_class_map: dict, clazz: str, super_class: str = None):
     if visited_classes.__contains__(clazz):
         return
     visited_classes[clazz] = True
@@ -52,6 +52,9 @@ def find_class_field_with_out_serializable(all_class_map: dict, clazz: str):
     to_do_check = []
     first = True
     for (varName, extra) in clazz_and_field.items():
+        if varName.startswith("this$"):
+            # inner class maybe?
+            continue
         ann = extra['first']
         raw_type = extra['second']
         field_type = get_class_from_str(raw_type).replace('/', '.')
@@ -59,7 +62,7 @@ def find_class_field_with_out_serializable(all_class_map: dict, clazz: str):
             global check_field
             check_field += 1
             if first:
-                print(f"\033[1m{clazz}\033[0m")
+                print(f"\033[1m{clazz}{' <- ' if super_class else ''}{super_class}\033[0m")
                 global check
                 check += 1
                 first = False
@@ -70,7 +73,7 @@ def find_class_field_with_out_serializable(all_class_map: dict, clazz: str):
         if raw_type not in java_inner_class and not raw_type.startswith("java/") and not raw_type.startswith("Ljava/"):
             to_do_check.append(field_type)
     for c in to_do_check:
-        find_class_field_with_out_serializable(all_class_map, c)
+        find_class_field_with_out_serializable(all_class_map, c, clazz)
 
 
 if __name__ == "__main__":
