@@ -46,6 +46,9 @@ class R8CheckPlugin : Plugin<Project> {
                 File("${target.rootDir}/suspicious_class_set.json").apply {
                     println("Saved to ${this.absolutePath}")
                 }.writeText(Gson().toJson(Result.classMap))
+                File("${target.rootDir}/suspicious_class_set_reason.json").apply {
+                    println("Saved to ${this.absolutePath}")
+                }.writeText(Gson().toJson(Result.classMapReason))
             }
         }
     }

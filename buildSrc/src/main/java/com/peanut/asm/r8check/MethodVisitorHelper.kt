@@ -22,8 +22,9 @@ class MethodVisitorHelper {
 
     fun visitTypeInsn(opcode: Int, type: String?) {
         if (shouldFocusNextCHECKCAST && opcode == Opcodes.CHECKCAST) {
-            Result.classMap.add(type ?: "")
-            println("$$$ ,${type ?: ""}")
+            val T = type ?: ""
+            Result.classMap.add(T)
+            Result.classMapReason[T] = "fromJson/parseJson"
             shouldFocusNextCHECKCAST = false
         }
     }

@@ -31,9 +31,9 @@ class R8CheckClassVisitor(
                     "com/three/http/callback/LifeDataCallback"
                 )
             )?.apply {
-                println("$ s:$it,t:${it.getClassT()}}")
-                //todo filename
-                Result.classMap.add(it.getClassT() ?: "")
+                val T = it.getClassT()?:""
+                Result.classMap.add(T)
+                Result.classMapReason[T] = this.second
             }
         }
         super.visit(version, access, name, signature, superName, interfaces)
